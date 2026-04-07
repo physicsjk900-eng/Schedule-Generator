@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us | Schedulizer</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .page-content {
+            max-width: 800px;
+            margin: 100px auto;
+            padding: 2rem;
+            background: var(--c-bg-surface);
+            border-radius: var(--radius-lg);
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .contact-form input,
+        .contact-form textarea {
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--c-border);
+            background: var(--c-bg-app);
+            color: var(--c-text-main);
+            width: 100%;
+            font-family: var(--font-ui);
+        }
+    </style>
+</head>
+
+<body class="bg-base horizontal-layout">
+    <header class="global-header glass-panel">
+        <div class="header-container">
+            <a href="index.html" class="logo" style="text-decoration:none;">
+                <div class="logo-icon"><i class="fas fa-layer-group"></i></div>
+                <span>Schedulizer</span>
+            </a>
+            <nav class="app-nav header-app-nav">
+                <a href="index.html" class="nav-item">Home</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page-content glass-panel">
+        <h1 style="color:var(--c-text-main); margin-bottom: 1rem;">Contact Us</h1>
+        <p style="color:var(--c-text-muted); line-height: 1.6;">Have questions about our schedule planner or need
+            support with the Pomodoro tracker? Drop us a line.</p>
+
+        <form class="contact-form" action="#" method="get" onsubmit="alert('Message Sent (Demo)'); return false;">
+            <input type="text" placeholder="Your Name" required>
+            <input type="email" placeholder="Your Email Address" required>
+            <textarea rows="5" placeholder="How can we help you?" required></textarea>
+            <button type="submit" class="btn btn-primary">Send Message</button>
+        </form>
+    </main>
+
+    <footer style="text-align: center; color: var(--c-text-muted); padding: 2rem;">
+        &copy; 2026 Schedulizer Productivity Suite.
+    </footer>
+</body>
+
+</html>
