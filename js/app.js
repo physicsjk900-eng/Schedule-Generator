@@ -13,12 +13,12 @@ document.addEventListener('DOMContentLoaded', () => {
         completed: e.completed || false,
         focusMins: e.focusMins || 0
     }));
-    
+
     // Make events global for analytics and export
     window._events = events;
-    
+
     let tempSubtasks = [];
-    
+
     // Set init pomodoro placeholder
     const initSetting = JSON.parse(localStorage.getItem('saas_schedulizer_settings'));
     const pLen = initSetting ? (initSetting.pomoLength || 25) : 25;
@@ -30,56 +30,145 @@ document.addEventListener('DOMContentLoaded', () => {
     const htmlEl = document.documentElement;
 
     if (themeBtn) {
+        // Initial state logic: default to Light if no preference
+        const savedTheme = localStorage.getItem('saas_theme') || 'light';
+        htmlEl.setAttribute('data-theme', savedTheme);
+        themeBtn.innerHTML = savedTheme === 'dark' ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+
         themeBtn.addEventListener('click', () => {
             if (htmlEl.getAttribute('data-theme') === 'dark') {
                 htmlEl.setAttribute('data-theme', 'light');
+                localStorage.setItem('saas_theme', 'light');
                 themeBtn.innerHTML = '<i class="fas fa-sun"></i>';
             } else {
                 htmlEl.setAttribute('data-theme', 'dark');
+                localStorage.setItem('saas_theme', 'dark');
                 themeBtn.innerHTML = '<i class="fas fa-moon"></i>';
             }
         });
     }
 
+    // --- Mobile Drawer Logic ---
+    const drawer = document.getElementById('mobile-drawer');
+    const overlay = document.getElementById('drawer-overlay');
+    const openBtn = document.getElementById('mobile-nav-toggle');
+    const closeBtn = document.getElementById('btn-close-drawer');
+
+    function toggleDrawer(isOpen) {
+        if (isOpen) {
+            drawer.classList.add('active');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        } else {
+            drawer.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    if (openBtn) openBtn.addEventListener('click', () => toggleDrawer(true));
+    if (closeBtn) closeBtn.addEventListener('click', () => toggleDrawer(false));
+    if (overlay) overlay.addEventListener('click', () => toggleDrawer(false));
+
+    // --- Background Switcher Logic ---
+    const bgSelect = document.getElementById('bg-style-select');
+    const bgSelectMobile = document.getElementById('bg-style-select-mobile');
+
+    function updateBackground(selected) {
+        const bgClass = `bg-${selected}`;
+        document.body.className = `bg-base ${bgClass}`;
+        localStorage.setItem('saas_aurora_bg', bgClass);
+        if (bgSelect) bgSelect.value = selected;
+        if (bgSelectMobile) bgSelectMobile.value = selected;
+    }
+
+    if (bgSelect) {
+        bgSelect.addEventListener('change', (e) => updateBackground(e.target.value));
+    }
+    if (bgSelectMobile) {
+        bgSelectMobile.addEventListener('change', (e) => updateBackground(e.target.value));
+    }
+
+    // Load saved BG on boot
+    const savedBg = localStorage.getItem('saas_aurora_bg') || 'bg-calm';
+    updateBackground(savedBg.replace('bg-', ''));
+
+
+
     // --- Core SPA Routing ---
     const navItems = document.querySelectorAll('.app-nav .nav-item');
     const sections = document.querySelectorAll('.app-section');
 
-    function navigateTo(targetId) {
+    function navigateTo(targetId, fromHomeBtn = false) {
+        const hero = document.getElementById('home-hero');
+        const sections = document.querySelectorAll('.app-section');
+        const navItems = document.querySelectorAll('.app-nav .nav-item, .drawer-nav-item');
+
+
         sections.forEach(sec => sec.classList.remove('active'));
         document.getElementById(targetId).classList.add('active');
 
+        // Toggle Hero visibility: only visible on 'Home' or when explicitly viewing calendar from landing
+        if (targetId === 'section-calendar' && fromHomeBtn) {
+            if (hero) hero.classList.remove('hidden');
+        } else if (targetId !== 'section-calendar') {
+            if (hero) hero.classList.add('hidden');
+        } else {
+            // When going to "Calendar Hub", we might want to hide the landing hero for focus
+            if (hero) hero.classList.add('hidden');
+        }
+
         navItems.forEach(item => {
-            if (item.dataset.target === targetId) item.classList.add('active');
-            else item.classList.remove('active');
+            item.classList.remove('active');
+            if (item.dataset.target === targetId) {
+                // If it's the home button, check if we're actually on home
+                if (item.id === 'nav-home-btn' && fromHomeBtn) item.classList.add('active');
+                else if (item.id !== 'nav-home-btn' && !fromHomeBtn) item.classList.add('active');
+            }
         });
 
         // Trigger updates if specific sections are opened
         if (targetId === 'section-analytics' && window.updateAnalytics) {
             window.updateAnalytics();
         }
+
+        // Home screen date/grid update
+        if (hero && !hero.classList.contains('hidden')) {
+            renderHomePreview();
+        }
     }
 
-    navItems.forEach(item => {
+    const allNavButtons = document.querySelectorAll('.app-nav .nav-item, .drawer-nav-item');
+    allNavButtons.forEach(item => {
         item.addEventListener('click', () => {
-            navigateTo(item.dataset.target);
+            const isHome = item.id === 'nav-home-btn';
+            navigateTo(item.dataset.target, isHome);
+            
+            // Close mobile drawer if active
+            toggleDrawer(false);
+
+            
             // On mobile, close sidebar (simulate by scrolling up)
-            if(window.innerWidth < 768) {
-                window.scrollTo(0,0);
+            if (window.innerWidth < 768 || isHome) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
+
             // Update page title
             const titleEl = document.getElementById('page-title');
-            if (item.dataset.target === 'section-calendar') titleEl.textContent = 'Dashboard';
-            if (item.dataset.target === 'section-analytics') titleEl.textContent = 'Analytics';
-            if (item.dataset.target === 'section-settings') titleEl.textContent = 'Settings';
+            if (titleEl) {
+                if (item.dataset.target === 'section-calendar') titleEl.textContent = isHome ? 'Home' : 'Dashboard';
+                if (item.dataset.target === 'section-analytics') titleEl.textContent = 'Analytics';
+                if (item.dataset.target === 'section-settings') titleEl.textContent = 'Settings';
+            }
         });
     });
 
+
     // --- Toast & Notifications ---
-    window.showToast = function(title, message, iconStr = 'fa-bell', colorClass = 'bg-primary') {
+    window.showToast = function (title, message, iconStr = 'fa-bell', colorClass = 'bg-primary') {
         const container = document.getElementById('toast-container');
         if (!container) return;
-        
+
         const toast = document.createElement('div');
         toast.className = 'toast-msg';
         toast.innerHTML = `
@@ -103,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 300);
-        }, 15000); 
+        }, 15000);
     };
 
     // --- Audio Sync Engine ---
@@ -129,10 +218,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function playRingtone() {
-        if (ringtone && audioUnlocked) ringtone.play().catch(() => {});
+        if (ringtone && audioUnlocked) ringtone.play().catch(() => { });
     }
 
-    window.stopRingtone = function() {
+    window.stopRingtone = function () {
         if (ringtone) {
             ringtone.pause();
             ringtone.currentTime = 0;
@@ -167,9 +256,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function saveEvents() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
         window._events = events;
-        if(window.updateAnalytics) window.updateAnalytics();
+        if (window.updateAnalytics) window.updateAnalytics();
     }
-    
+
     // Export globally for settings module
     window.saveEvents = saveEvents;
 
@@ -224,6 +313,115 @@ document.addEventListener('DOMContentLoaded', () => {
             window.showToast('Workspace Ready', `Welcome, ${name}! Your configurations are locked in.`, 'fa-rocket', 'bg-purple');
         });
     }
+
+    // --- Mobile Nav Toggle ---
+    const mobileToggle = document.getElementById('mobile-nav-toggle');
+    const headerNav = document.querySelector('.header-app-nav');
+
+    if (mobileToggle && headerNav) {
+        mobileToggle.addEventListener('click', () => {
+            headerNav.classList.toggle('show');
+            mobileToggle.querySelector('i').classList.toggle('fa-bars');
+            mobileToggle.querySelector('i').classList.toggle('fa-times');
+        });
+
+        // Close nav when clicking a link
+        headerNav.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                headerNav.classList.remove('show');
+                mobileToggle.querySelector('i').classList.add('fa-bars');
+                mobileToggle.querySelector('i').classList.remove('fa-times');
+            });
+        });
+    }
+
+    // --- Add Task Modal Logic ---
+    const createTaskModal = document.getElementById('create-task-modal');
+    const btnOpenAdd = document.getElementById('btn-open-add-task');
+    const fabAdd = document.getElementById('fab-add-task');
+    const btnCloseAdd = document.getElementById('btn-close-create-task');
+
+    function openAddTaskModal(prefillDate = null) {
+        if (createTaskModal) {
+            createTaskModal.classList.add('show');
+            if (prefillDate) {
+                document.getElementById('event-date').value = prefillDate;
+            } else {
+                document.getElementById('event-date').valueAsDate = new Date();
+            }
+            document.getElementById('event-title').focus();
+        }
+    }
+    window.openAddTaskModal = openAddTaskModal; // Export for grid clicks
+
+    function closeAddTaskModal() {
+        if (createTaskModal) {
+            createTaskModal.classList.remove('show');
+            form.reset();
+            editingEventId = null;
+            btnSubmit.innerHTML = 'Add to Calendar';
+            btnCancel.classList.add('hidden');
+        }
+    }
+
+    if (btnOpenAdd) btnOpenAdd.addEventListener('click', () => openAddTaskModal());
+    if (fabAdd) fabAdd.addEventListener('click', () => openAddTaskModal());
+    if (btnCloseAdd) btnCloseAdd.addEventListener('click', closeAddTaskModal);
+
+    const btnHomeAdd = document.getElementById('btn-home-add-task');
+    if (btnHomeAdd) btnHomeAdd.addEventListener('click', () => openAddTaskModal());
+
+    // Close on outside click
+    if (createTaskModal) {
+        createTaskModal.addEventListener('click', (e) => {
+            if (e.target === createTaskModal) closeAddTaskModal();
+        });
+    }
+
+    // --- Home Screen & Sidebar Logic ---
+    function renderHomePreview() {
+        const homeDateEl = document.getElementById('home-today-date');
+        const homeGrid = document.getElementById('home-calendar-grid');
+        const sideDateEl = document.getElementById('sidebar-today-date');
+        const sideGrid = document.getElementById('sidebar-today-list');
+
+        const _today = new Date();
+        const dateStrLong = _today.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+
+        if (homeDateEl) homeDateEl.textContent = dateStrLong;
+        if (sideDateEl) sideDateEl.textContent = dateStrLong;
+
+        const dStr = `${_today.getFullYear()}-${String(_today.getMonth() + 1).padStart(2, '0')}-${String(_today.getDate()).padStart(2, '0')}`;
+        let todaysEvts = events.filter(e => e.date === dStr);
+        todaysEvts.sort((a, b) => (a.start === "All Day" ? "00:00" : a.start).localeCompare(b.start === "All Day" ? "00:00" : b.start));
+
+        const populate = (container) => {
+            if (!container) return;
+            container.innerHTML = '';
+            if (todaysEvts.length === 0) {
+                container.innerHTML = `<div class="empty-state-small"><i class="fas fa-calendar-check"></i><p>Clear day!</p></div>`;
+                return;
+            }
+            todaysEvts.forEach(ev => {
+                const item = document.createElement('div');
+                item.className = `home-preview-item ${ev.color} ${ev.completed ? 'completed' : ''}`;
+                item.innerHTML = `
+                    <div class="p-time">${ev.start === "All Day" ? "All Day" : formatTime(ev.start)}</div>
+                    <div class="p-title">${ev.title}</div>
+                `;
+                item.onclick = () => openTaskModal(ev);
+                container.appendChild(item);
+            });
+        };
+
+        populate(homeGrid);
+        populate(sideGrid);
+    }
+
+
+    // Call after save and initial load
+    renderHomePreview();
+
 
     // --- Calendar Main Logic ---
     const now = new Date();
@@ -291,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     bAddSub.addEventListener('click', () => {
         const val = subtaskInp.value.trim();
-        if(val) {
+        if (val) {
             tempSubtasks.push({ text: val, done: false });
             subtaskInp.value = '';
             renderTempSubtasks();
@@ -311,7 +509,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     form.addEventListener('submit', (e) => {
         e.preventDefault();
-        
+
         const base = {
             title: document.getElementById('event-title').value,
             date: document.getElementById('event-date').value,
@@ -343,15 +541,15 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             const rec = document.getElementById('event-recurring').value;
             let occ = rec === 'daily' ? 30 : (rec === 'weekly' ? 12 : (rec === 'monthly' ? 12 : 1));
-            
+
             const bDate = new Date(base.date + 'T12:00:00');
-            for(let i=0; i<occ; i++) {
+            for (let i = 0; i < occ; i++) {
                 let d = new Date(bDate);
                 if (rec === 'daily') d.setDate(d.getDate() + i);
-                if (rec === 'weekly') d.setDate(d.getDate() + (i*7));
+                if (rec === 'weekly') d.setDate(d.getDate() + (i * 7));
                 if (rec === 'monthly') d.setMonth(d.getMonth() + i);
-                
-                const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+                const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                 events.push({
                     ...base,
                     id: Date.now() + '-' + i,
@@ -366,11 +564,15 @@ document.addEventListener('DOMContentLoaded', () => {
         tempSubtasks = [];
         renderTempSubtasks();
         document.getElementById('event-date').valueAsDate = new Date();
+        closeAddTaskModal(); // Close modal after submission
         renderCalendar();
+        renderHomePreview();
     });
 
+
+
     document.getElementById('btn-clear-all').addEventListener('click', () => {
-        if(confirm("Purge entire workspace schedule?")) {
+        if (confirm("Purge entire workspace schedule?")) {
             events = [];
             saveEvents();
             renderCalendar();
@@ -383,7 +585,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const calTitle = document.getElementById('calendar-title');
 
     function formatTime(str) {
-        if(!str || str === "All Day") return "";
+        if (!str || str === "All Day") return "";
         let [h, m] = str.split(':');
         h = parseInt(h);
         const ampm = h >= 12 ? 'pm' : 'am';
@@ -397,7 +599,7 @@ document.addEventListener('DOMContentLoaded', () => {
         calContainer.innerHTML = '';
         const y = currentDate.getFullYear();
         const m = currentDate.getMonth();
-        const mName = currentDate.toLocaleString('default', {month: 'long'});
+        const mName = currentDate.toLocaleString('default', { month: 'long' });
 
         if (currentView === 'monthly') {
             calTitle.textContent = `${mName} ${y}`;
@@ -407,10 +609,10 @@ document.addEventListener('DOMContentLoaded', () => {
             renderWeekly(y, m);
         } else {
             const tDate = new Date(document.getElementById('event-date').value || now);
-            calTitle.textContent = tDate.toLocaleDateString(undefined, {weekday:'long', month:'long', day:'numeric', year:'numeric'});
+            calTitle.textContent = tDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
             renderDaily(tDate);
         }
-        
+
         window._currentView = currentView;
         window._currentDate = currentDate;
     }
@@ -422,7 +624,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const grid = document.createElement('div');
         grid.className = 'cal-grid-month';
 
-        const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         days.forEach(d => {
             const th = document.createElement('div');
             th.className = 'cal-header-cell';
@@ -430,80 +632,95 @@ document.addEventListener('DOMContentLoaded', () => {
             grid.appendChild(th);
         });
 
-        for(let i=0; i<firstDay; i++) {
+        for (let i = 0; i < firstDay; i++) {
             grid.appendChild(createEmptyCell());
         }
 
-        for(let d=1; d<=dInMonth; d++) {
+        for (let d = 1; d <= dInMonth; d++) {
             const cell = document.createElement('div');
             cell.className = 'cal-day-cell text-sm';
-            
-            const isToday = d===now.getDate() && month===now.getMonth() && year===now.getFullYear();
+
+            const isToday = d === now.getDate() && month === now.getMonth() && year === now.getFullYear();
             cell.innerHTML = `
                 <div class="day-number ${isToday ? 'today' : ''}">${d}</div>
                 <div class="events-list"></div>
             `;
-            
+
+            const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            cell.onclick = (e) => {
+                if (e.target === cell || e.target.classList.contains('day-number') || e.target.classList.contains('events-list')) {
+                    openAddTaskModal(dStr);
+                }
+            };
+
             const eList = cell.querySelector('.events-list');
-            const dStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-            
             let dayEvths = events.filter(e => e.date === dStr);
-            dayEvths.sort((a,b) => (a.start==="All Day"? "00:00":a.start).localeCompare(b.start==="All Day"?"00:00":b.start));
+            dayEvths.sort((a, b) => (a.start === "All Day" ? "00:00" : a.start).localeCompare(b.start === "All Day" ? "00:00" : b.start));
 
             dayEvths.forEach(ev => {
                 const pl = document.createElement('div');
                 pl.className = `event-pill ${ev.color} ${ev.completed ? 'task-completed-pill' : ''}`;
                 const tStr = formatTime(ev.start);
                 pl.innerHTML = tStr ? `<span class="e-time">${tStr}</span>${ev.title}` : ev.title;
-                pl.onclick = () => openTaskModal(ev);
+                pl.onclick = (e) => {
+                    e.stopPropagation();
+                    openTaskModal(ev);
+                };
                 eList.appendChild(pl);
             });
             grid.appendChild(cell);
         }
 
         const rem = (firstDay + dInMonth) % 7;
-        if(rem > 0) {
-            for(let i=0; i<(7-rem); i++) {
+        if (rem > 0) {
+            for (let i = 0; i < (7 - rem); i++) {
                 grid.appendChild(createEmptyCell());
             }
         }
         calContainer.appendChild(grid);
     }
-    
-    function createEmptyCell(){
+
+    function createEmptyCell() {
         const bl = document.createElement('div');
         bl.className = 'cal-day-cell dimmed';
         return bl;
     }
 
     function renderWeekly(year, month) {
+
         let scTime = new Date(year, month, 1);
         const day = scTime.getDay();
-        const diff = scTime.getDate() - day + (day===0? -6 : 1);
+        const diff = scTime.getDate() - day + (day === 0 ? -6 : 1);
         scTime = new Date(scTime.setDate(diff));
 
         const grid = document.createElement('div');
         grid.className = 'cal-grid-week';
 
-        for(let i=0; i<7; i++) {
+        for (let i = 0; i < 7; i++) {
             let curD = new Date(scTime);
             curD.setDate(scTime.getDate() + i);
-            const dStr = `${curD.getFullYear()}-${String(curD.getMonth()+1).padStart(2,'0')}-${String(curD.getDate()).padStart(2,'0')}`;
+            const dStr = `${curD.getFullYear()}-${String(curD.getMonth() + 1).padStart(2, '0')}-${String(curD.getDate()).padStart(2, '0')}`;
             const isToday = curD.toDateString() === now.toDateString();
 
             const col = document.createElement('div');
             col.className = 'week-col';
             col.innerHTML = `
-                <div class="week-header ${isToday?'today':''}">
-                    <div class="week-day">${curD.toLocaleString('default',{weekday:'short'})}</div>
+                <div class="week-header ${isToday ? 'today' : ''}">
+                    <div class="week-day">${curD.toLocaleString('default', { weekday: 'short' })}</div>
                     <div class="week-date">${curD.getDate()}</div>
                 </div>
                 <div class="week-events"></div>
             `;
-            
+
+            col.onclick = (e) => {
+                if (e.target.closest('.week-event')) return;
+                openAddTaskModal(dStr);
+            };
+
+
             const weList = col.querySelector('.week-events');
             let weEvts = events.filter(e => e.date === dStr);
-            weEvts.sort((a,b) => (a.start==="All Day"? "00:00":a.start).localeCompare(b.start==="All Day"?"00:00":b.start));
+            weEvts.sort((a, b) => (a.start === "All Day" ? "00:00" : a.start).localeCompare(b.start === "All Day" ? "00:00" : b.start));
 
             weEvts.forEach(ev => {
                 const ed = document.createElement('div');
@@ -522,24 +739,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderDaily(tDate) {
-        const dStr = `${tDate.getFullYear()}-${String(tDate.getMonth()+1).padStart(2,'0')}-${String(tDate.getDate()).padStart(2,'0')}`;
+        const dStr = `${tDate.getFullYear()}-${String(tDate.getMonth() + 1).padStart(2, '0')}-${String(tDate.getDate()).padStart(2, '0')}`;
         let dEvs = events.filter(e => e.date === dStr);
         const isToday = tDate.toDateString() === now.toDateString();
-        
-        if(isToday) {
+
+        if (isToday) {
             dEvs.push({
                 isMarker: true,
-                start: `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`,
+                start: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
                 title: 'Current Segment'
             });
         }
-        
-        dEvs.sort((a,b) => (a.start==="All Day"? "00:00":a.start).localeCompare(b.start==="All Day"?"00:00":b.start));
-        
+
+        dEvs.sort((a, b) => (a.start === "All Day" ? "00:00" : a.start).localeCompare(b.start === "All Day" ? "00:00" : b.start));
+
         const cont = document.createElement('div');
         cont.className = 'daily-container';
 
-        if(dEvs.length === 0 || (dEvs.length===1 && dEvs[0].isMarker)) {
+        if (dEvs.length === 0 || (dEvs.length === 1 && dEvs[0].isMarker)) {
             cont.innerHTML = `<div class="empty-state"><i class="fas fa-mug-hot"></i><p>No operational tasks for this bracket.</p></div>`;
             calContainer.appendChild(cont);
             return;
@@ -550,7 +767,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         dEvs.forEach(ev => {
             const tm = document.createElement('div');
-            if(ev.isMarker) {
+            if (ev.isMarker) {
                 tm.className = 'current-time-marker';
                 tm.innerHTML = `<div class="current-time-badge"><i class="fas fa-satellite-dish"></i> Live &bull; ${formatTime(ev.start)}</div>`;
                 tl.appendChild(tm);
@@ -559,9 +776,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             tm.className = `timeline-item ${ev.completed ? 'task-completed' : ''}`;
             tm.onclick = () => openTaskModal(ev);
-            
+
             const timeStr = ev.start === "All Day" ? "All Day" : [formatTime(ev.start), formatTime(ev.end)].filter(Boolean).join(' - ');
-            
+
             tm.innerHTML = `
                 <div class="timeline-dot ${ev.color}"></div>
                 <div class="timeline-content">
@@ -592,23 +809,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let openTask = null;
 
-    window.openTaskModal = function(ev) {
+    window.openTaskModal = function (ev) {
         openTask = ev;
         tmTitle.textContent = ev.title;
         tmCol.className = `task-icon ${ev.color}`;
-        
-        const dobj = new Date(ev.date+'T00:00:00');
+
+        const dobj = new Date(ev.date + 'T00:00:00');
         tmDate.textContent = dobj.toDateString();
-        tmTime.textContent = ev.start==="All Day"?"All Day":[formatTime(ev.start),formatTime(ev.end)].filter(Boolean).join(' - ') || 'N/A';
-        tmRem.textContent = (ev.reminder && ev.reminder!=='none') ? `${ev.reminder} mins before` : 'No alert set';
+        tmTime.textContent = ev.start === "All Day" ? "All Day" : [formatTime(ev.start), formatTime(ev.end)].filter(Boolean).join(' - ') || 'N/A';
+        tmRem.textContent = (ev.reminder && ev.reminder !== 'none') ? `${ev.reminder} mins before` : 'No alert set';
         tmDet.textContent = ev.details || 'No extended notes provided.';
-        
+
         tmPrio.textContent = `${ev.priority} Priority`;
-        if(ev.priority==='high') { tmPrio.style.background = 'var(--c-danger-light)'; tmPrio.style.color = 'var(--c-danger)'; }
-        else if (ev.priority==='low') { tmPrio.style.background = 'var(--c-primary-light)'; tmPrio.style.color = 'var(--c-primary)'; }
+        if (ev.priority === 'high') { tmPrio.style.background = 'var(--c-danger-light)'; tmPrio.style.color = 'var(--c-danger)'; }
+        else if (ev.priority === 'low') { tmPrio.style.background = 'var(--c-primary-light)'; tmPrio.style.color = 'var(--c-primary)'; }
         else { tmPrio.style.background = 'var(--c-warning-light)'; tmPrio.style.color = 'var(--c-warning)'; }
 
-        if(ev.completed) {
+        if (ev.completed) {
             tmStatus.classList.remove('hidden');
             tmTitle.parentElement.parentElement.classList.add('task-completed');
             btnToggleComplete.innerHTML = '<i class="fas fa-undo"></i> Revert';
@@ -628,7 +845,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderModalSubtasks() {
         const subCont = document.getElementById('tm-subtasks-list');
         subCont.innerHTML = '';
-        if(!openTask || !openTask.subtasks || openTask.subtasks.length === 0) {
+        if (!openTask || !openTask.subtasks || openTask.subtasks.length === 0) {
             subCont.innerHTML = '<p style="color:var(--c-text-muted); font-size:0.9rem;">No action items defined.</p>';
             return;
         }
@@ -645,9 +862,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.toggleSubtask = (idx) => {
-        if(!openTask) return;
+        if (!openTask) return;
         const evIdx = events.findIndex(e => e.id === openTask.id);
-        if(evIdx > -1) {
+        if (evIdx > -1) {
             events[evIdx].subtasks[idx].done = !events[evIdx].subtasks[idx].done;
             openTask = events[evIdx];
             saveEvents();
@@ -664,9 +881,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('task-modal-close').addEventListener('click', closeTaskModal);
 
     btnToggleComplete.addEventListener('click', () => {
-        if(openTask) {
+        if (openTask) {
             const idx = events.findIndex(e => e.id === openTask.id);
-            if(idx > -1) {
+            if (idx > -1) {
                 events[idx].completed = !events[idx].completed;
                 saveEvents();
                 renderCalendar();
@@ -678,7 +895,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('btn-delete-event').addEventListener('click', () => {
-        if(openTask) {
+        if (openTask) {
             events = events.filter(e => e.id !== openTask.id);
             saveEvents();
             renderCalendar();
@@ -688,10 +905,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('btn-edit-event').addEventListener('click', () => {
-        if(openTask) {
+        if (openTask) {
             document.getElementById('event-title').value = openTask.title;
             document.getElementById('event-date').value = openTask.date;
-            document.getElementById('event-start').value = openTask.start !== "All Day" ? openTask.start:"";
+            document.getElementById('event-start').value = openTask.start !== "All Day" ? openTask.start : "";
             document.getElementById('event-end').value = openTask.end;
             document.getElementById('event-priority').value = openTask.priority || "medium";
             document.getElementById('event-reminder').value = openTask.reminder || "none";
@@ -701,7 +918,7 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedColor = openTask.color;
             document.querySelectorAll('.color-choice').forEach(b => {
                 b.classList.remove('selected');
-                if(b.getAttribute('data-color') === selectedColor) b.classList.add('selected');
+                if (b.getAttribute('data-color') === selectedColor) b.classList.add('selected');
             });
 
             editingEventId = openTask.id;
@@ -716,10 +933,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Pomodoro ---
     let focInt = null;
-    let focTimeLeft = 25*60;
+    let focTimeLeft = 25 * 60;
     let focPaused = false;
     let focElapsedSec = 0;
-    
+
     const focOv = document.getElementById('focus-overlay');
     const focDisp = document.getElementById('focus-timer-display');
     const focStat = document.getElementById('focus-timer-status');
@@ -727,7 +944,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const focTogTxt = document.getElementById('focus-toggle-text');
 
     document.getElementById('btn-start-focus').addEventListener('click', () => {
-        if(!openTask) return;
+        if (!openTask) return;
         document.getElementById('focus-task-title').textContent = openTask.title;
         closeTaskModal();
         focOv.classList.remove('hidden');
@@ -738,14 +955,14 @@ document.addEventListener('DOMContentLoaded', () => {
         focTimeLeft = est * 60;
         focElapsedSec = 0;
         focPaused = false;
-        
+
         focTogTxt.textContent = "Pause";
         focTogBtn.firstElementChild.className = "fas fa-pause";
         updateFocDisp();
 
         clearInterval(focInt);
         focInt = setInterval(() => {
-            if(!focPaused && focTimeLeft > 0) {
+            if (!focPaused && focTimeLeft > 0) {
                 focTimeLeft--;
                 focElapsedSec++;
                 updateFocDisp();
@@ -756,15 +973,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function updateFocDisp() {
-        const m = String(Math.floor(focTimeLeft/60)).padStart(2,'0');
-        const s = String(focTimeLeft%60).padStart(2,'0');
+        const m = String(Math.floor(focTimeLeft / 60)).padStart(2, '0');
+        const s = String(focTimeLeft % 60).padStart(2, '0');
         focDisp.textContent = `${m}:${s}`;
         focStat.textContent = `${m} mins remaining block`;
     }
 
     focTogBtn.addEventListener('click', () => {
         focPaused = !focPaused;
-        if(focPaused) {
+        if (focPaused) {
             focTogTxt.textContent = "Resume";
             focTogBtn.firstElementChild.className = "fas fa-play";
             focStat.textContent = "Focus Paused";
@@ -783,7 +1000,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function finishFocus() {
         clearInterval(focInt);
-        
+
         if (openTask && focElapsedSec > 0) {
             const idx = events.findIndex(e => e.id === openTask.id);
             if (idx > -1) {
@@ -793,7 +1010,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveEvents();
             }
         }
-        
+
         window.showToast('Deep Work Concluded', 'Session metrics recorded successfully.', 'fa-brain', 'bg-indigo');
         closeFocus();
     }
