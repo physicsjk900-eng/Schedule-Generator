@@ -1,5 +1,5 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
+
 
 <head>
     <meta charset="UTF-8">
@@ -8,11 +8,6 @@
         content="Use our free online schedule maker and calendar creator to organize your tasks, manage time, and boost productivity. Perfect as a weekly schedule maker or daily planner.">
     <meta name="keywords"
         content="schedule creator, calendar schedule maker, Weekly schedule maker, schedule planner, free online schedule maker, task planner, pomodoro tracker">
-    <meta name="google-adsense-account" content="ca-pub-9421396482288313">
-
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9421396482288313"
-     crossorigin="anonymous"></script>
-    
     <title>Free Online Schedule Maker & Calendar Creator | Schedulizer</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,186 +32,156 @@
                 <div class="logo-icon"><i class="fas fa-layer-group"></i></div>
                 <span>Schedulizer</span>
             </div>
-            <nav class="app-nav header-app-nav">
-                <button class="nav-item active" data-target="section-calendar"><i class="fas fa-calendar-alt"></i>
+            <nav class="app-nav header-app-nav desktop-only">
+                <button class="nav-item active" data-target="section-calendar" id="nav-home-btn"><i
+                        class="fas fa-home"></i>
+                    Home</button>
+                <button class="nav-item" data-target="section-calendar"><i class="fas fa-calendar-alt"></i>
                     Calendar Hub</button>
                 <button class="nav-item" data-target="section-analytics"><i class="fas fa-chart-pie"></i>
                     Analytics</button>
                 <button class="nav-item" data-target="section-settings"><i class="fas fa-cog"></i> Settings</button>
             </nav>
+
             <div class="header-actions">
+                <div class="header-controls desktop-only">
+                    <div class="theme-select-container">
+                        <select id="bg-style-select" class="btn-select" aria-label="Choose Background">
+                            <option value="calm">Calm Aurora</option>
+                            <option value="ocean">Ocean Pulse</option>
+                            <option value="sunset">Sunset Mesh</option>
+                            <option value="crimson">Crimson Mist</option>
+                        </select>
+                    </div>
+                </div>
                 <button class="theme-toggle btn-icon" id="theme-toggle" aria-label="Toggle Theme"><i
-                        class="fas fa-moon"></i></button>
-                <button class="btn btn-primary btn-sm" id="auth-btn-header">
+                        class="fas fa-sun"></i></button>
+
+                <button class="btn btn-primary btn-sm desktop-only" id="auth-btn-header">
                     <i class="fas fa-user"></i> <span id="auth-status-text">Sign In</span>
                 </button>
+
+                <div class="mobile-nav-toggle" id="mobile-nav-toggle"><i class="fas fa-bars"></i></div>
             </div>
         </div>
     </header>
 
-    <!-- AdSense Placement 1 -->
-    <div class="ad-container-wrap">
+    <!-- MOBILE DRAWER -->
+    <div class="mobile-drawer-overlay" id="drawer-overlay"></div>
+    <div class="mobile-drawer" id="mobile-drawer">
+        <div class="drawer-header">
+            <div class="logo">
+                <div class="logo-icon"><i class="fas fa-layer-group"></i></div>
+                <span>Menu</span>
+            </div>
+            <button class="btn-close-drawer" id="btn-close-drawer"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="drawer-body">
+            <div class="drawer-section">
+                <h4>NAVIGATION</h4>
+                <nav class="drawer-nav">
+                    <button class="drawer-nav-item active" data-target="section-calendar"><i
+                            class="fas fa-home"></i> Home</button>
+                    <button class="drawer-nav-item" data-target="section-calendar"><i
+                            class="fas fa-calendar-alt"></i> Calendar Hub</button>
+                    <button class="drawer-nav-item" data-target="section-analytics"><i
+                            class="fas fa-chart-pie"></i> Analytics</button>
+                    <button class="drawer-nav-item" data-target="section-settings"><i
+                            class="fas fa-cog"></i> Settings</button>
+                </nav>
+            </div>
+
+            <div class="drawer-section">
+                <h4>CUSTOMIZATION</h4>
+                <div class="drawer-field">
+                    <label>Background Style</label>
+                    <select id="bg-style-select-mobile" class="btn-select btn-full">
+                        <option value="calm">Calm Aurora</option>
+                        <option value="ocean">Ocean Pulse</option>
+                        <option value="sunset">Sunset Mesh</option>
+                        <option value="crimson">Crimson Mist</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="drawer-section">
+                <h4>ACCOUNT</h4>
+                <button class="btn btn-primary btn-full" id="auth-btn-drawer">
+                    <i class="fas fa-user"></i> <span>Sign In</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Marketing Hero (Moved to bottom of Home/Landing screen) -->
+    <!-- (Moved placeholder to bottom of main sections) -->
+
+    <!-- Header Advertisement Area -->
+    <div class="ad-container ad-top">
         <div class="ad-slot">
-            <span class="ad-label"></span>
+            <span class="ad-label">ADVERTISEMENT</span>
         </div>
     </div>
 
     <!-- APP WIDGET -->
     <div id="app-anchor" class="app-anchor-point"></div>
+
+
+
     <main class="app-wrapper glass-panel">
         <div class="app-content-area">
             <!-- CALENDAR SECTION -->
             <section id="section-calendar" class="app-section active">
-                <div class="dashboard-grid">
-
-                    <!-- Input Form -->
-                    <div class="widget form-widget">
-                        <div class="widget-header">
-                            <h3><i class="fas fa-plus-circle text-primary"></i> Add Task</h3>
+                <div class="dashboard-header-bar">
+                    <button id="btn-open-add-task" class="btn btn-primary">
+                        <i class="fas fa-plus-circle"></i> Create Task
+                    </button>
+                    <div class="calendar-controls">
+                        <div class="view-tabs">
+                            <button class="view-tab active" data-view="monthly">Monthly</button>
+                            <button class="view-tab" data-view="weekly">Weekly</button>
+                            <button class="view-tab" data-view="daily">Daily</button>
                         </div>
-                        <div class="widget-body">
-                            <form id="event-form" class="task-form">
-                                <div class="form-group">
-                                    <label>Title</label>
-                                    <input type="text" id="event-title" required
-                                        placeholder="Project milestone presentation...">
-                                </div>
-                                <div class="form-group">
-                                    <label>Date</label>
-                                    <input type="date" id="event-date" required>
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group half">
-                                        <label>Start Time</label>
-                                        <input type="time" id="event-start">
-                                    </div>
-                                    <div class="form-group half">
-                                        <label>End Time</label>
-                                        <input type="time" id="event-end">
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group half">
-                                        <label>Priority</label>
-                                        <div class="select-wrapper">
-                                            <select id="event-priority">
-                                                <option value="low">Low</option>
-                                                <option value="medium" selected>Medium</option>
-                                                <option value="high">High</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="form-group half">
-                                        <label>Reminder</label>
-                                        <div class="select-wrapper">
-                                            <select id="event-reminder">
-                                                <option value="none">No Reminder</option>
-                                                <option value="5">5 Mins Before</option>
-                                                <option value="10" selected>10 Mins Before</option>
-                                                <option value="15">15 Mins Before</option>
-                                                <option value="30">30 Mins Before</option>
-                                                <option value="60">1 Hour Before</option>
-                                                <option value="1440">1 Day Before</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group half">
-                                        <label>Repeat</label>
-                                        <div class="select-wrapper">
-                                            <select id="event-recurring">
-                                                <option value="none">Does not repeat</option>
-                                                <option value="daily">Daily</option>
-                                                <option value="weekly">Weekly</option>
-                                                <option value="monthly">Monthly</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="form-group half">
-                                        <label>Est Time (m)</label>
-                                        <input type="number" id="event-est" placeholder="25" min="1">
-                                    </div>
-                                </div>
-
-                                <div class="audio-sync-banner" id="alarm-sync-banner">
-                                    <div class="banner-content">
-                                        <h4><i class="fas fa-bell"></i> Ringtone Alerts</h4>
-                                        <p>Sync Audio with Device</p>
-                                    </div>
-                                    <button type="button" id="btn-sync-audio" class="btn-sync">SYNC</button>
-                                </div>
-                                <audio id="reminder-ringtone" preload="auto"
-                                    src="https://assets.mixkit.co/active_storage/sfx/2290/2290-preview.mp3"
-                                    loop></audio>
-
-                                <div class="form-group mt-3">
-                                    <label>Details / Notes</label>
-                                    <textarea id="event-details" rows="3"
-                                        placeholder="Add meeting notes or specific goals..."></textarea>
-                                </div>
-
-                                <div class="form-group mt-3">
-                                    <label>Subtask Checklist</label>
-                                    <div class="subtask-input-group" style="display: flex; gap: 8px;">
-                                        <input type="text" id="event-subtask-input" placeholder="Add a sub-item..."
-                                            style="flex: 1;">
-                                        <button type="button" id="btn-add-subtask" class="btn btn-primary-light"
-                                            style="padding: 0 1rem;"><i class="fas fa-plus"></i></button>
-                                    </div>
-                                    <div id="event-subtasks-list" class="subtasks-list" style="margin-top: 8px;"></div>
-                                </div>
-
-                                <div class="form-group color-picker-group">
-                                    <label>Color Tag</label>
-                                    <div class="color-picker" id="color-picker">
-                                        <button type="button" class="color-choice bg-slate selected"
-                                            data-color="bg-slate"></button>
-                                        <button type="button" class="color-choice bg-lavender"
-                                            data-color="bg-lavender"></button>
-                                        <button type="button" class="color-choice bg-rose-dusty"
-                                            data-color="bg-rose-dusty"></button>
-                                        <button type="button" class="color-choice bg-mint"
-                                            data-color="bg-mint"></button>
-                                        <button type="button" class="color-choice bg-teal"
-                                            data-color="bg-teal"></button>
-                                    </div>
-                                </div>
-
-                                <div class="form-actions">
-                                    <button type="submit" id="btn-submit-event" class="btn btn-primary btn-full">Add to
-                                        Calendar</button>
-                                    <button type="button" id="btn-cancel-edit"
-                                        class="btn btn-outline btn-full hidden">Cancel Edit</button>
-                                    <button type="button" id="btn-clear-all"
-                                        class="btn btn-text btn-full text-danger">Purge Calendar</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-                    <!-- Visual Calendar -->
-                    <div class="widget calendar-widget">
-                        <div class="calendar-controls">
-                            <div class="view-tabs">
-                                <button class="view-tab active" data-view="monthly">Monthly</button>
-                                <button class="view-tab" data-view="weekly">Weekly</button>
-                                <button class="view-tab" data-view="daily">Daily</button>
-                            </div>
-                            <div class="calendar-actions">
-                                <input type="month" id="calendar-month-picker" class="month-picker">
-                                <button id="btn-export-pdf" class="btn btn-success"><i class="fas fa-file-export"></i>
-                                    PDF</button>
-                            </div>
-                        </div>
-
-                        <div class="calendar-display" id="printable-calendar">
-                            <h2 id="calendar-title" class="calendar-title">Month Year</h2>
-                            <div id="calendar-grid-container" class="calendar-grid-container"></div>
+                        <div class="calendar-actions">
+                            <input type="month" id="calendar-month-picker" class="month-picker">
+                            <button id="btn-export-pdf" class="btn btn-success"><i class="fas fa-file-export"></i>
+                                PDF</button>
                         </div>
                     </div>
                 </div>
+
+                <div class="dashboard-main-layout">
+                    <!-- Visual Calendar (Left) -->
+                    <div class="widget calendar-widget">
+                        <div class="calendar-display" id="printable-calendar">
+                            <h2 id="calendar-title" class="calendar-title">Month Year</h2>
+                            <div class="scrollable-x">
+                                <div id="calendar-grid-container" class="calendar-grid-container"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Sidebar: Today's Insights -->
+                    <aside class="dashboard-sidebar-today glass-panel">
+                        <div class="sidebar-header">
+                            <h3><i class="fas fa-calendar-check text-primary"></i> Today's Insights</h3>
+                            <span id="sidebar-today-date" class="text-xs text-muted">April 7, 2026</span>
+                        </div>
+                        <div id="sidebar-today-list" class="sidebar-today-list">
+                            <!-- Populated by JS -->
+                        </div>
+                        <hr class="mt-4 mb-4">
+                        <div class="sidebar-footer">
+                            <button class="nav-item btn-text w-full text-left" data-target="section-analytics">
+                                <i class="fas fa-chart-line"></i> View Detailed Analytics
+                            </button>
+                        </div>
+                    </aside>
+                </div>
             </section>
+
 
             <!-- ANALYTICS SECTION -->
             <section id="section-analytics" class="app-section">
@@ -403,14 +368,160 @@
         </div>
     </main>
 
-     <!-- Marketing Hero -->
-    <section class="hero-section">
-        <div class="hero-content">
-            <h1>Free Online Schedule Maker &amp; Planner</h1>
-            <p>Your ultimate calendar schedule maker. Build daily workflows, map out your monthly goals, and stay
-                productive with our weekly schedule maker—all directly from your browser, completely free.</p>
-            <a href="#app-anchor" class="btn btn-primary btn-huge"><i class="fas fa-rocket"></i> Launch Schedule
-                Creator</a>
+
+
+    <!-- Create Task Modal -->
+    <div class="modal-overlay" id="create-task-modal">
+        <div class="modal-dialog task-modal-dialog">
+            <div class="task-modal-header">
+                <h3><i class="fas fa-plus-circle text-primary"></i> Add New Task</h3>
+                <button id="btn-close-create-task" class="btn-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="task-modal-body">
+                <form id="event-form" class="task-form">
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" id="event-title" required placeholder="Project milestone presentation...">
+                    </div>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="event-date" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label>Start Time</label>
+                            <input type="time" id="event-start">
+                        </div>
+                        <div class="form-group half">
+                            <label>End Time</label>
+                            <input type="time" id="event-end">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label>Priority</label>
+                            <div class="select-wrapper">
+                                <select id="event-priority">
+                                    <option value="low">Low</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="high">High</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group half">
+                            <label>Reminder</label>
+                            <div class="select-wrapper">
+                                <select id="event-reminder">
+                                    <option value="none">No Reminder</option>
+                                    <option value="5">5 Mins Before</option>
+                                    <option value="10" selected>10 Mins Before</option>
+                                    <option value="15">15 Mins Before</option>
+                                    <option value="30">30 Mins Before</option>
+                                    <option value="60">1 Hour Before</option>
+                                    <option value="1440">1 Day Before</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label>Repeat</label>
+                            <div class="select-wrapper">
+                                <select id="event-recurring">
+                                    <option value="none">Does not repeat</option>
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group half">
+                            <label>Est Time (m)</label>
+                            <input type="number" id="event-est" placeholder="25" min="1">
+                        </div>
+                    </div>
+
+                    <div class="audio-sync-banner" id="alarm-sync-banner">
+                        <div class="banner-content">
+                            <h4><i class="fas fa-bell"></i> Ringtone Alerts</h4>
+                            <p>Sync Audio with Device</p>
+                        </div>
+                        <button type="button" id="btn-sync-audio" class="btn-sync">SYNC</button>
+                    </div>
+                    <audio id="reminder-ringtone" preload="auto"
+                        src="https://assets.mixkit.co/active_storage/sfx/2290/2290-preview.mp3" loop></audio>
+
+                    <div class="form-group mt-3">
+                        <label>Details / Notes</label>
+                        <textarea id="event-details" rows="3"
+                            placeholder="Add meeting notes or specific goals..."></textarea>
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <label>Subtask Checklist</label>
+                        <div class="subtask-input-group" style="display: flex; gap: 8px;">
+                            <input type="text" id="event-subtask-input" placeholder="Add a sub-item..."
+                                style="flex: 1;">
+                            <button type="button" id="btn-add-subtask" class="btn btn-primary-light"
+                                style="padding: 0 1rem;"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <div id="event-subtasks-list" class="subtasks-list" style="margin-top: 8px;"></div>
+                    </div>
+
+                    <div class="form-group color-picker-group">
+                        <label>Color Tag</label>
+                        <div class="color-picker" id="color-picker">
+                            <button type="button" class="color-choice bg-slate selected" data-color="bg-slate"></button>
+                            <button type="button" class="color-choice bg-lavender" data-color="bg-lavender"></button>
+                            <button type="button" class="color-choice bg-rose-dusty"
+                                data-color="bg-rose-dusty"></button>
+                            <button type="button" class="color-choice bg-mint" data-color="bg-mint"></button>
+                            <button type="button" class="color-choice bg-teal" data-color="bg-teal"></button>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" id="btn-submit-event" class="btn btn-primary btn-full">Add to
+                            Calendar</button>
+                        <button type="button" id="btn-cancel-edit" class="btn btn-outline btn-full hidden">Cancel
+                            Edit</button>
+                        <button type="button" id="btn-clear-all" class="btn btn-text btn-full text-danger">Purge
+                            Calendar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Marketing Hero (Home Screen / Landing) -->
+    <section class="hero-section" id="home-hero">
+        <div class="hero-flex-container">
+            <div class="hero-content">
+                <h1>AI-Powered Schedule Maker &amp; Planner</h1>
+                <p>Your ultimate calendar schedule maker. Build daily workflows, map out your monthly goals, and stay
+                    productive—directly from your browser, completely free.</p>
+                <div class="hero-btns">
+                    <a href="#app-anchor" class="btn btn-primary btn-huge"><i class="fas fa-rocket"></i> Get Started
+                        Free</a>
+                    <button id="btn-home-add-task" class="btn btn-secondary btn-huge"><i class="fas fa-plus"></i> Add
+                        Task</button>
+                </div>
+            </div>
+
+            <!-- Live Preview / Today's Schedule on Home -->
+            <div class="hero-calendar-preview glass-panel">
+                <div class="preview-header">
+                    <h3><i class="fas fa-calendar-day"></i> Today's Schedule</h3>
+                    <span id="home-today-date" class="text-muted">April 7, 2026</span>
+                </div>
+                <div id="home-calendar-grid" class="home-calendar-grid">
+                    <!-- Populated by JS -->
+                </div>
+                <a href="#app-anchor" class="btn btn-text btn-full mt-2">Go to Full Calendar <i
+                        class="fas fa-arrow-right"></i></a>
+            </div>
         </div>
     </section>
 
@@ -418,31 +529,53 @@
     <section id="features-anchor" class="seo-container">
         <div class="seo-header">
             <h2>The Only Schedule Planner You Need</h2>
-            <p>From organizing high-priority milestones to generating printable daily planners, our calendar schedule
-                maker ensures you stay on track without the clutter.</p>
+            <p>From Pomodoro tracking to PDF exports, Schedulizer is the ultimate free online schedule maker.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card glass-panel">
+                <i class="fas fa-bolt"></i>
+                <h3>Instant Availability</h3>
+                <p>No account required. Open your browser and start building your schedule in seconds.</p>
+            </div>
+            <div class="feature-card glass-panel">
+                <i class="fas fa-print"></i>
+                <h3>PDF Ready</h3>
+                <p>Export your weekly schedule maker creations to high-quality PDF docs for offline use.</p>
+            </div>
+            <div class="feature-card glass-panel">
+                <i class="fas fa-mobile-alt"></i>
+                <h3>Mobile Optimized</h3>
+                <p>Manage your time on the go with our fully responsive dashboard.</p>
+            </div>
+            <!-- Additional features -->
+            <div class="feature-card glass-panel">
+                <i class="fas fa-stopwatch"></i>
+                <h3>Pomodoro Focus</h3>
+                <p>Assign deep-work segments to tasks using our integrated Pomodoro focus timer.</p>
+            </div>
+            <div class="feature-card glass-panel">
+                <i class="fas fa-chart-line"></i>
+                <h3>Real-Time Analytics</h3>
+                <p>Track task completion rates and priority breakdowns in a powerful dashboard.</p>
+            </div>
+            <div class="feature-card glass-panel">
+                <i class="fas fa-shield-alt"></i>
+                <h3>Privacy First</h3>
+                <p>No subscriptions or paywalls. All data stays local to your browser for ultimate privacy.</p>
+            </div>
         </div>
 
-        <div class="feature-cards">
-            <div class="seo-card glass-panel">
-                <div class="seo-card-icon bg-indigo"><i class="fas fa-stopwatch"></i></div>
-                <h3>Pomodoro Focus Tracker</h3>
-                <p>Not just a schedule creator. Enter deep-work segments instantly using our integrated Pomodoro focus
-                    timer linked directly to your recurring tasks.</p>
-            </div>
-            <div class="seo-card glass-panel">
-                <div class="seo-card-icon bg-emerald"><i class="fas fa-chart-line"></i></div>
-                <h3>Real-Time Analytics</h3>
-                <p>This powerful free online schedule maker offers a comprehensive analytics dashboard giving you
-                    insight into task completion rates and priority breakdowns.</p>
-            </div>
-            <div class="seo-card glass-panel">
-                <div class="seo-card-icon bg-rose"><i class="fas fa-file-pdf"></i></div>
-                <h3>Export Printable PDFs</h3>
-                <p>Need a physical copy? Use our weekly schedule maker to rapidly format and export your entire month,
-                    week, or day directly into high-res layout PDFs.</p>
-            </div>
-        </div>
     </section>
+
+
+    <!-- Post-Hero Advertisement Area -->
+    <div class="ad-container ad-mid">
+        <div class="ad-slot">
+            <span class="ad-label"></span>
+        </div>
+    </div>
+
+
 
     <!-- POMODORO SEO BLOCK -->
     <section class="seo-container">
@@ -677,7 +810,10 @@
         </div>
     </div>
 
+
+
     <script src="js/app.js"></script>
+
     <script src="js/analytics.js"></script>
     <script src="js/settings.js"></script>
     <script src="js/pdfExport.js"></script>
