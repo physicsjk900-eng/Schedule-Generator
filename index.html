@@ -163,22 +163,18 @@
                         </div>
                     </div>
 
-                    <!-- Right Sidebar: Today's Insights -->
-                    <aside class="dashboard-sidebar-today glass-panel">
-                        <div class="sidebar-header">
-                            <h3><i class="fas fa-calendar-check text-primary"></i> Today's Insights</h3>
-                            <span id="sidebar-today-date" class="text-xs text-muted">April 7, 2026</span>
+                    <!-- Live Preview / Today's Schedule on Home -->
+                    <div class="hero-calendar-preview glass-panel">
+                        <div class="preview-header">
+                            <h3><i class="fas fa-calendar-day"></i> Today's Schedule</h3>
+                            <span id="home-today-date" class="text-muted">April 7, 2026</span>
                         </div>
-                        <div id="sidebar-today-list" class="sidebar-today-list">
+                        <div id="home-calendar-grid" class="home-calendar-grid">
                             <!-- Populated by JS -->
                         </div>
-                        <hr class="mt-4 mb-4">
-                        <div class="sidebar-footer">
-                            <button class="nav-item btn-text w-full text-left" data-target="section-analytics">
-                                <i class="fas fa-chart-line"></i> View Detailed Analytics
-                            </button>
-                        </div>
-                    </aside>
+                        <a href="#app-anchor" class="btn btn-text btn-full mt-2">Go to Full Calendar <i
+                                class="fas fa-arrow-right"></i></a>
+                    </div>
                 </div>
             </section>
 
@@ -510,18 +506,7 @@
                 </div>
             </div>
 
-            <!-- Live Preview / Today's Schedule on Home -->
-            <div class="hero-calendar-preview glass-panel">
-                <div class="preview-header">
-                    <h3><i class="fas fa-calendar-day"></i> Today's Schedule</h3>
-                    <span id="home-today-date" class="text-muted">April 7, 2026</span>
-                </div>
-                <div id="home-calendar-grid" class="home-calendar-grid">
-                    <!-- Populated by JS -->
-                </div>
-                <a href="#app-anchor" class="btn btn-text btn-full mt-2">Go to Full Calendar <i
-                        class="fas fa-arrow-right"></i></a>
-            </div>
+
         </div>
     </section>
 
