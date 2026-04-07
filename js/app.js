@@ -143,11 +143,11 @@ document.addEventListener('DOMContentLoaded', () => {
         item.addEventListener('click', () => {
             const isHome = item.id === 'nav-home-btn';
             navigateTo(item.dataset.target, isHome);
-            
+
             // Close mobile drawer if active
             toggleDrawer(false);
 
-            
+
             // On mobile, close sidebar (simulate by scrolling up)
             if (window.innerWidth < 768 || isHome) {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
