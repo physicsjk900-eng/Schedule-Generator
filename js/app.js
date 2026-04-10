@@ -539,23 +539,63 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('event-recurring').disabled = false;
             window.showToast('Event Linked', 'Task successfully updated in workspace.', 'fa-check', 'bg-emerald');
         } else {
-            const rec = document.getElementById('event-recurring').value;
-            let occ = rec === 'daily' ? 30 : (rec === 'weekly' ? 12 : (rec === 'monthly' ? 12 : 1));
+            // --- Recurrence Handling ---
+            const recPattern = document.getElementById('event-recurring').value; // 'none', 'daily', 'weekly', 'monthly', 'yearly', 'biweekly', 'custom'
+            let generatedEvents = [];
+            const baseDate = new Date(base.date + 'T12:00:00');
+            // Helper to format date string
+            const fmtDate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-            const bDate = new Date(base.date + 'T12:00:00');
-            for (let i = 0; i < occ; i++) {
-                let d = new Date(bDate);
-                if (rec === 'daily') d.setDate(d.getDate() + i);
-                if (rec === 'weekly') d.setDate(d.getDate() + (i * 7));
-                if (rec === 'monthly') d.setMonth(d.getMonth() + i);
-
-                const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                events.push({
-                    ...base,
-                    id: Date.now() + '-' + i,
-                    date: ds
-                });
+            if (recPattern === 'none' || recPattern === 'daily' || recPattern === 'weekly' || recPattern === 'monthly') {
+                // Existing simple patterns
+                let occ = recPattern === 'daily' ? 30 : (recPattern === 'weekly' ? 12 : (recPattern === 'monthly' ? 12 : 1));
+                for (let i = 0; i < occ; i++) {
+                    let d = new Date(baseDate);
+                    if (recPattern === 'daily') d.setDate(d.getDate() + i);
+                    if (recPattern === 'weekly') d.setDate(d.getDate() + (i * 7));
+                    if (recPattern === 'monthly') d.setMonth(d.getMonth() + i);
+                    generatedEvents.push({ ...base, id: Date.now() + '-' + i, date: fmtDate(d) });
+                }
+            } else if (recPattern === 'yearly') {
+                const years = parseInt(document.getElementById('recurrence-count').value) || 5;
+                for (let i = 0; i < years; i++) {
+                    let d = new Date(baseDate);
+                    d.setFullYear(d.getFullYear() + i);
+                    generatedEvents.push({ ...base, id: Date.now() + '-y' + i, date: fmtDate(d) });
+                }
+            } else if (recPattern === 'biweekly') {
+                const occ = parseInt(document.getElementById('recurrence-count').value) || 10;
+                for (let i = 0; i < occ; i++) {
+                    let d = new Date(baseDate);
+                    d.setDate(d.getDate() + (i * 14));
+                    generatedEvents.push({ ...base, id: Date.now() + '-b' + i, date: fmtDate(d) });
+                }
+            } else if (recPattern === 'custom') {
+                const interval = parseInt(document.getElementById('recurrence-interval').value) || 1; // days
+                const occ = parseInt(document.getElementById('recurrence-count').value) || 5;
+                for (let i = 0; i < occ; i++) {
+                    let d = new Date(baseDate);
+                    d.setDate(d.getDate() + (i * interval));
+                    generatedEvents.push({ ...base, id: Date.now() + '-c' + i, date: fmtDate(d) });
+                }
             }
+
+            // Conflict detection before adding
+            const conflicts = [];
+            generatedEvents.forEach(ev => {
+                const clash = events.find(e => e.date === ev.date && e.start === ev.start && e.title === ev.title);
+                if (clash) conflicts.push(ev);
+            });
+            if (conflicts.length > 0) {
+                // Show conflict toast (existing toast function)
+                window.showToast('Conflict Detected', `${conflicts.length} events overlap with existing ones. Overwrite?`, 'fa-exclamation-triangle', 'bg-rose');
+                // For simplicity, we skip adding conflicted events. Users can edit manually.
+                generatedEvents = generatedEvents.filter(ev => !conflicts.includes(ev));
+            }
+
+            // Add generated events to the main list
+            events = events.concat(generatedEvents);
+            window.showToast('Deployed', `Added ${generatedEvents.length} events to the planner.`, 'fa-layer-group', 'bg-primary');
             window.showToast('Deployed', `Added ${occ} events to the planner.`, 'fa-layer-group', 'bg-primary');
         }
 
